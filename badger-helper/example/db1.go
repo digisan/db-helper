@@ -82,8 +82,7 @@ func (db1 *DB1) RmData(items ...string) error {
 }
 
 func GetDB1(id string) (*DB1, error) {
-	db1 := NewDB1(id)
-	db1, err := bh.GetOneObjectDB[DB1](db1.Key())
+	db1, err := bh.GetOneObjectDB[DB1]([]byte(id))
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +90,7 @@ func GetDB1(id string) (*DB1, error) {
 }
 
 func GetDB1Data(id string) ([]string, error) {
-	db1 := NewDB1(id)
-	db1, err := bh.GetOneObjectDB[DB1](db1.Key())
+	db1, err := bh.GetOneObjectDB[DB1]([]byte(id))
 	if err != nil {
 		return nil, err
 	}
@@ -100,4 +98,20 @@ func GetDB1Data(id string) ([]string, error) {
 		return []string{}, nil
 	}
 	return db1.data, nil
+}
+
+func GetDB1s(prefix string, filter func(*DB1) bool) ([]*DB1, error) {
+	db1s, err := bh.GetObjectsDB([]byte(prefix), filter)
+	if err != nil {
+		return nil, err
+	}
+	return db1s, err
+}
+
+func GetDB1First(prefix string, filter func(*DB1) bool) (*DB1, error) {
+	return bh.GetFirstObjectDB([]byte(prefix), filter)
+}
+
+func GetDB1Count(prefix string, filter func(*DB1) bool) (int, error) {
+	return bh.GetObjectCountDB([]byte(prefix), filter)
 }

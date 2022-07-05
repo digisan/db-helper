@@ -54,8 +54,8 @@ func GetOneObjectDB[V any, T PtrDbAccessible[V]](key []byte) (T, error) {
 	return rt, err
 }
 
-// use Unmarshal returned data as map-value
-func GetMapDB[V any, T PtrDbAccessible[V]](prefix []byte) (map[string]any, error) {
+// use Unmarshal returned data as map-value, filter key is []byte type
+func GetMapDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func([]byte, any) bool) (map[string]any, error) {
 	var (
 		rt  = make(map[string]any)
 		err = T(new(V)).BadgerDB().View(func(txn *badger.Txn) error {
@@ -70,7 +70,9 @@ func GetMapDB[V any, T PtrDbAccessible[V]](prefix []byte) (map[string]any, error
 					if err != nil {
 						return err
 					}
-					rt[string(key)] = data
+					if filter == nil || filter(key, data) {
+						rt[string(key)] = data
+					}
 					return nil
 				})
 			}
@@ -96,7 +98,7 @@ func GetMapDB[V any, T PtrDbAccessible[V]](prefix []byte) (map[string]any, error
 }
 
 // all objects if prefix is nil or empty
-func GetObjectsDB[V any, T PtrDbAccessible[V]](prefix []byte) ([]T, error) {
+func GetObjectsDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool) ([]T, error) {
 	var (
 		rt  = []T{}
 		err = T(new(V)).BadgerDB().View(func(txn *badger.Txn) error {
@@ -110,7 +112,9 @@ func GetObjectsDB[V any, T PtrDbAccessible[V]](prefix []byte) ([]T, error) {
 					if _, err := one.Unmarshal(item.Key(), val); err != nil {
 						return err
 					}
-					rt = append(rt, one)
+					if filter == nil || filter(one) {
+						rt = append(rt, one)
+					}
 					return nil
 				})
 			}
@@ -176,4 +180,98 @@ func DeleteOneObjectDB[V any, T PtrDbAccessible[V]](key []byte) error {
 		}
 		return nil
 	})
+}
+
+func GetObjectCountDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool) (int, error) {
+	var (
+		n   = 0
+		err = T(new(V)).BadgerDB().View(func(txn *badger.Txn) error {
+			opts := badger.DefaultIteratorOptions
+			it := txn.NewIterator(opts)
+			defer it.Close()
+
+			itemproc := func(item *badger.Item) error {
+				return item.Value(func(val []byte) error {
+					one := T(new(V))
+					if _, err := one.Unmarshal(item.Key(), val); err != nil {
+						n = 0
+						return err
+					}
+					if filter == nil || filter(one) {
+						n++
+					}
+					return nil
+				})
+			}
+
+			if len(prefix) == 0 {
+				for it.Rewind(); it.Valid(); it.Next() {
+					if err := itemproc(it.Item()); err != nil {
+						return err
+					}
+				}
+			} else {
+				for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+					if err := itemproc(it.Item()); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		})
+	)
+	return n, err
+}
+
+func GetFirstObjectDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool) (T, error) {
+	var (
+		found = false
+		rt    = T(new(V))
+		err   = T(new(V)).BadgerDB().View(func(txn *badger.Txn) error {
+			opts := badger.DefaultIteratorOptions
+			it := txn.NewIterator(opts)
+			defer it.Close()
+
+			itemproc := func(item *badger.Item) error {
+				return item.Value(func(val []byte) error {
+					one := T(new(V))
+					if _, err := one.Unmarshal(item.Key(), val); err != nil {
+						return err
+					}
+					if filter == nil || filter(one) {
+						found = true
+						rt = one
+					}
+					return nil
+				})
+			}
+
+			if len(prefix) == 0 {
+				for it.Rewind(); it.Valid(); it.Next() {
+					if err := itemproc(it.Item()); err != nil {
+						return err
+					}
+					if found {
+						break
+					}
+				}
+			} else {
+				for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+					if err := itemproc(it.Item()); err != nil {
+						return err
+					}
+					if found {
+						break
+					}
+				}
+			}
+
+			return nil
+		})
+	)
+	if !found {
+		return nil, err
+	}
+	return rt, err
 }
