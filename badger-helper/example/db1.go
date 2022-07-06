@@ -115,3 +115,11 @@ func GetDB1First(prefix string, filter func(*DB1) bool) (*DB1, error) {
 func GetDB1Count(prefix string, filter func(*DB1) bool) (int, error) {
 	return bh.GetObjectCountDB([]byte(prefix), filter)
 }
+
+func DelDB1First(prefix string) (int, error) {
+	return bh.DeleteFirstObjectDB[DB1]([]byte(prefix))
+}
+
+func UpdateDB1First(prefix string, object *DB1) (int, error) {
+	return bh.UpdateFirstObjectDB([]byte(prefix), object)
+}
