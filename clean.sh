@@ -2,4 +2,4 @@
 
 set -e
 
-rm -rf ./badger-helper/example/data
+rm -rf ./badger/example/data/

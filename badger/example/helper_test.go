@@ -2,8 +2,13 @@ package example
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
+
+func TestTemp(t *testing.T) {
+	fmt.Println(strings.HasPrefix("abc", ""))
+}
 
 func TestGetDB1(t *testing.T) {
 
