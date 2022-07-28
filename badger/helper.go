@@ -41,11 +41,9 @@ func GetOneObjectDB[V any, T PtrDbAccessible[V]](key []byte) (T, error) {
 				}
 				return nil
 			}
-
 			if it.Seek(key); it.Valid() {
 				return itemproc(it.Item())
 			}
-
 			return nil
 		})
 	)
@@ -77,7 +75,6 @@ func GetMapDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func([]byte, an
 					return nil
 				})
 			}
-
 			if len(prefix) == 0 {
 				for it.Rewind(); it.Valid(); it.Next() {
 					if err := itemproc(it.Item()); err != nil {
@@ -91,7 +88,6 @@ func GetMapDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func([]byte, an
 					}
 				}
 			}
-
 			return nil
 		})
 	)
@@ -119,7 +115,6 @@ func GetObjectsDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) boo
 					return nil
 				})
 			}
-
 			if len(prefix) == 0 {
 				for it.Rewind(); it.Valid(); it.Next() {
 					if err := itemproc(it.Item()); err != nil {
@@ -133,7 +128,6 @@ func GetObjectsDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) boo
 					}
 				}
 			}
-
 			return nil
 		})
 	)
@@ -161,7 +155,6 @@ func GetObjectCountDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T)
 					return nil
 				})
 			}
-
 			if len(prefix) == 0 {
 				for it.Rewind(); it.Valid(); it.Next() {
 					if err := itemproc(it.Item()); err != nil {
@@ -175,7 +168,6 @@ func GetObjectCountDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T)
 					}
 				}
 			}
-
 			return nil
 		})
 	)
@@ -204,7 +196,6 @@ func GetFirstObjectDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T)
 					return nil
 				})
 			}
-
 			if len(prefix) == 0 {
 				for it.Rewind(); it.Valid(); it.Next() {
 					if err := itemproc(it.Item()); err != nil {
@@ -224,7 +215,6 @@ func GetFirstObjectDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T)
 					}
 				}
 			}
-
 			return nil
 		})
 	)
