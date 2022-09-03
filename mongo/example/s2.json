@@ -1,0 +1,26 @@
+[
+    {
+        "fullName": "User 5",
+        "age": 55,
+        "class": {
+            "name": "Class 5",
+            "teacher": "Miss Gao"
+        }
+    },
+    {
+        "fullName": "User 6",
+        "age": 66,
+        "class": {
+            "name": "Class 6",
+            "teacher": "Miss Tie"
+        }
+    },
+    {
+        "fullName": "User 7",
+        "age": 77,
+        "class": {
+            "name": "Class 7",
+            "teacher": "Miss Gan"
+        }
+    }
+]

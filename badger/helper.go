@@ -20,7 +20,7 @@ type PtrDbAccessible[T any] interface {
 }
 
 // one object with fixed key
-func GetOneObjectDB[V any, T PtrDbAccessible[V]](key []byte) (T, error) {
+func GetOneObject[V any, T PtrDbAccessible[V]](key []byte) (T, error) {
 	var (
 		found = false
 		rt    = T(new(V))
@@ -54,7 +54,7 @@ func GetOneObjectDB[V any, T PtrDbAccessible[V]](key []byte) (T, error) {
 }
 
 // use Unmarshal returned data as map-value, filter key is []byte type
-func GetMapDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func([]byte, any) bool) (map[string]any, error) {
+func GetMap[V any, T PtrDbAccessible[V]](prefix []byte, filter func([]byte, any) bool) (map[string]any, error) {
 	var (
 		rt  = make(map[string]any)
 		err = T(new(V)).BadgerDB().View(func(txn *badger.Txn) error {
@@ -95,7 +95,7 @@ func GetMapDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func([]byte, an
 }
 
 // all objects if prefix is nil or empty
-func GetObjectsDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool) ([]T, error) {
+func GetObjects[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool) ([]T, error) {
 	var (
 		rt  = []T{}
 		err = T(new(V)).BadgerDB().View(func(txn *badger.Txn) error {
@@ -134,7 +134,7 @@ func GetObjectsDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) boo
 	return rt, err
 }
 
-func GetObjectCountDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool) (int, error) {
+func GetObjectCount[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool) (int, error) {
 	var (
 		n   = 0
 		err = T(new(V)).BadgerDB().View(func(txn *badger.Txn) error {
@@ -174,7 +174,7 @@ func GetObjectCountDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T)
 	return n, err
 }
 
-func GetFirstObjectDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool) (T, error) {
+func GetFirstObject[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool) (T, error) {
 	var (
 		found = false
 		rt    = T(new(V))
@@ -227,21 +227,21 @@ func GetFirstObjectDB[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T)
 // -------------------------------------------------------------------- //
 
 // update or insert one object
-func UpsertOneObjectDB[V any, T PtrDbAccessible[V]](object T) error {
+func UpsertOneObject[V any, T PtrDbAccessible[V]](object T) error {
 	return object.BadgerDB().Update(func(txn *badger.Txn) error {
 		return txn.Set(object.Marshal(nil))
 	})
 }
 
 // update or insert part object at specific area
-func UpsertPartObjectDB[V any, T PtrDbAccessible[V]](object T, at any) error {
+func UpsertPartObject[V any, T PtrDbAccessible[V]](object T, at any) error {
 	return object.BadgerDB().Update(func(txn *badger.Txn) error {
 		return txn.Set(object.Marshal(at))
 	})
 }
 
 // update or insert many objects
-func UpsertObjectsDB[V any, T PtrDbAccessible[V]](objects ...T) error {
+func UpsertObjects[V any, T PtrDbAccessible[V]](objects ...T) error {
 	wb := T(new(V)).BadgerDB().NewWriteBatch()
 	defer wb.Cancel()
 
@@ -256,7 +256,7 @@ func UpsertObjectsDB[V any, T PtrDbAccessible[V]](objects ...T) error {
 // -------------------------------------------------------------------- //
 
 // delete one object
-func DeleteOneObjectDB[V any, T PtrDbAccessible[V]](key []byte) (n int, err error) {
+func DeleteOneObject[V any, T PtrDbAccessible[V]](key []byte) (n int, err error) {
 	return n, T(new(V)).BadgerDB().Update(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		it := txn.NewIterator(opts)
@@ -274,7 +274,7 @@ func DeleteOneObjectDB[V any, T PtrDbAccessible[V]](key []byte) (n int, err erro
 }
 
 // delete multiple object
-func DeleteObjectsDB[V any, T PtrDbAccessible[V]](prefix []byte) (n int, err error) {
+func DeleteObjects[V any, T PtrDbAccessible[V]](prefix []byte) (n int, err error) {
 	return n, T(new(V)).BadgerDB().Update(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		it := txn.NewIterator(opts)
@@ -291,7 +291,7 @@ func DeleteObjectsDB[V any, T PtrDbAccessible[V]](prefix []byte) (n int, err err
 	})
 }
 
-func DeleteFirstObjectDB[V any, T PtrDbAccessible[V]](prefix []byte) (n int, err error) {
+func DeleteFirstObject[V any, T PtrDbAccessible[V]](prefix []byte) (n int, err error) {
 	return n, T(new(V)).BadgerDB().Update(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		it := txn.NewIterator(opts)
@@ -308,7 +308,7 @@ func DeleteFirstObjectDB[V any, T PtrDbAccessible[V]](prefix []byte) (n int, err
 
 // -------------------------------------------------------------------- //
 
-func UpdateFirstObjectDB[V any, T PtrDbAccessible[V]](prefix []byte, object T) (n int, err error) {
+func UpdateFirstObject[V any, T PtrDbAccessible[V]](prefix []byte, object T) (n int, err error) {
 
 	if len(object.Key()) == 0 {
 		return 0, errors.New("object.Key CANNOT be empty")
@@ -328,7 +328,7 @@ func UpdateFirstObjectDB[V any, T PtrDbAccessible[V]](prefix []byte, object T) (
 		if it.Seek(prefix); it.ValidForPrefix(prefix) {
 			if err = txn.Delete(it.Item().KeyCopy(nil)); err == nil {
 				n++
-				return UpsertOneObjectDB(object)
+				return UpsertOneObject(object)
 			}
 		}
 		return err
