@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	mtx *sync.Mutex
+	mtx = &sync.Mutex{}
 	col *mongo.Collection
 )
 
