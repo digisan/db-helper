@@ -1,0 +1,8 @@
+{
+    "fullName": "User 2",
+    "age": 22,
+    "class": {
+        "name": "Class 2",
+        "teacher": "Lee Lei"
+    }
+}

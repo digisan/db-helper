@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 	"time"
 
@@ -87,6 +88,7 @@ func reader4json(r io.Reader) ([]byte, bool, error) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+// return inserted id(s), inserted data
 func Insert(rData io.Reader) (any, []byte, error) {
 
 	mtx.Lock()
@@ -131,64 +133,37 @@ func Insert(rData io.Reader) (any, []byte, error) {
 	}
 }
 
-func Find[T any](rFilter io.Reader) (rt []*T, err error) {
-
-	mtx.Lock()
-	defer mtx.Unlock()
-
-	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
-
-	var filter any
-
-	if rFilter != nil {
-		filterJSON, _, err := reader4json(rFilter)
-		if err != nil {
-			return nil, err
-		}
-		if err := bson.UnmarshalExtJSON(filterJSON, true, &filter); err != nil {
-			return nil, err
-		}
-	} else {
-		filter = bson.D{}
-	}
-
+// filter: bson format
+func find[T any](filter any) (rt []*T, err error) {
 	cursor, err := col.Find(Ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-
 	var results []bson.M
 	if err = cursor.All(Ctx, &results); err != nil {
 		return nil, err
 	}
-
 	for _, r := range results {
 		data, err := json.Marshal(r)
 		if err != nil {
 			return nil, err
 		}
-
 		one := new(T)
 		err = json.Unmarshal(data, one)
 		if err != nil {
 			return nil, err
 		}
-
 		rt = append(rt, one)
 	}
-
 	return rt, nil
 }
 
-func FindOne[T any](rFilter io.Reader) (*T, error) {
-
-	mtx.Lock()
-	defer mtx.Unlock()
+// return found objects
+func Find[T any](rFilter io.Reader) (rt []*T, err error) {
 
 	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
 
 	var filter any
-
 	if rFilter != nil {
 		filterJSON, _, err := reader4json(rFilter)
 		if err != nil {
@@ -200,15 +175,42 @@ func FindOne[T any](rFilter io.Reader) (*T, error) {
 	} else {
 		filter = bson.D{}
 	}
+	return find[T](filter)
+}
 
+// filter: bson format
+func findOne[T any](filter any) (*T, error) {
 	one := new(T)
 	if err := col.FindOne(Ctx, filter).Decode(one); err != nil {
+		if strings.Contains(err.Error(), "no documents in result") {
+			return nil, nil
+		}
 		return nil, err
 	}
-
 	return one, nil
 }
 
+// return found object, if not found, return nil
+func FindOne[T any](rFilter io.Reader) (*T, error) {
+
+	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
+
+	var filter any
+	if rFilter != nil {
+		filterJSON, _, err := reader4json(rFilter)
+		if err != nil {
+			return nil, err
+		}
+		if err := bson.UnmarshalExtJSON(filterJSON, true, &filter); err != nil {
+			return nil, err
+		}
+	} else {
+		filter = bson.D{}
+	}
+	return findOne[T](filter)
+}
+
+// return updated count
 func Update(rFilter, rUpdate io.Reader, one bool) (int, error) {
 
 	mtx.Lock()
@@ -257,6 +259,71 @@ func Update(rFilter, rUpdate io.Reader, one bool) (int, error) {
 	}
 }
 
+// return replaced count, after replacing data
+func ReplaceOne(rFilter, rData io.Reader) (any, []byte, error) {
+
+	mtx.Lock()
+	defer mtx.Unlock()
+
+	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
+
+	if rData == nil {
+		return 0, []byte{}, nil
+	}
+
+	var filter any
+	if rFilter != nil {
+		filterJSON, _, err := reader4json(rFilter)
+		if err != nil {
+			return 0, nil, err
+		}
+		if err := bson.UnmarshalExtJSON(filterJSON, true, &filter); err != nil {
+			return 0, nil, err
+		}
+	} else {
+		filter = bson.D{}
+	}
+
+	dataJSON, _, err := reader4json(rData)
+	if err != nil {
+		return 0, nil, err
+	}
+	var doc any
+	if err = bson.UnmarshalExtJSON(dataJSON, true, &doc); err != nil {
+		return 0, nil, err
+	}
+
+	result, err := col.ReplaceOne(Ctx, filter, doc)
+	if err != nil {
+		return 0, nil, err
+	}
+	return result.ModifiedCount, dataJSON, nil
+}
+
+// if inserted, return id,    inserted data
+// if replaced, return count, after replacing data
+func Upsert(rData io.Reader, idField string, idValue any) (any, []byte, error) {
+
+	IdFilterStr := ""
+	switch idValue.(type) {
+	case string:
+		IdFilterStr = fmt.Sprintf(`{"%s": "%v"}`, idField, idValue)
+	default:
+		IdFilterStr = fmt.Sprintf(`{"%s": %v}`, idField, idValue)
+	}
+
+	object, err := FindOne[map[string]any](strings.NewReader(IdFilterStr))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if object == nil {
+		return Insert(rData)
+	}
+	return ReplaceOne(strings.NewReader(IdFilterStr), rData)
+}
+
+// return deleted count, original object
 func DeleteOne[T any](rFilter io.Reader) (int, *T, error) {
 
 	mtx.Lock()
@@ -279,6 +346,9 @@ func DeleteOne[T any](rFilter io.Reader) (int, *T, error) {
 
 	result := col.FindOneAndDelete(Ctx, filter)
 	if err := result.Err(); err != nil {
+		if strings.Contains(err.Error(), "no documents in result") {
+			return 0, nil, nil
+		}
 		return 0, nil, err
 	}
 	one := new(T)
@@ -287,6 +357,7 @@ func DeleteOne[T any](rFilter io.Reader) (int, *T, error) {
 	}
 	return 1, one, nil
 
+	// ERR: RE-READ !!!
 	// object, err := FindOne[T](rFilter)
 	// if err != nil {
 	// 	return 0, nil, err
@@ -298,6 +369,7 @@ func DeleteOne[T any](rFilter io.Reader) (int, *T, error) {
 	// return int(result.DeletedCount), object, nil
 }
 
+// return deleted count, original objects
 func Delete[T any](rFilter io.Reader) (int, []*T, error) {
 
 	mtx.Lock()
@@ -318,7 +390,7 @@ func Delete[T any](rFilter io.Reader) (int, []*T, error) {
 		return 0, nil, nil
 	}
 
-	objects, err := Find[T](rFilter)
+	objects, err := find[T](filter)
 	if err != nil {
 		return 0, nil, err
 	}

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	mh "github.com/digisan/db-helper/mongo"
 )
@@ -39,6 +40,8 @@ func TestInsert(t *testing.T) {
 	}
 	fmt.Println(rIDs)
 	fmt.Println(string(data))
+
+	fmt.Println(time.Now())
 }
 
 func TestFind(t *testing.T) {
@@ -62,11 +65,11 @@ func TestFind(t *testing.T) {
 	// 	},
 	// }
 
-	rt, err := mh.Find[Person](strings.NewReader(`{
+	rt, err := mh.FindOne[Person](strings.NewReader(`{
 		"$and": [
 			{
 				"age": {
-					"$gt": 60
+					"$gt": 600
 				}
 			}
 		]
@@ -78,12 +81,12 @@ func TestFind(t *testing.T) {
 		panic(err)
 	}
 
-	// fmt.Println(rt)
+	fmt.Println(rt)
 
-	for _, p := range rt {
-		fmt.Println()
-		fmt.Print(p)
-	}
+	// for _, p := range rt {
+	// 	fmt.Println()
+	// 	fmt.Print(p)
+	// }
 }
 
 func TestUpdate(t *testing.T) {
@@ -121,7 +124,7 @@ func TestUpdate(t *testing.T) {
 func TestDelete(t *testing.T) {
 	mh.UseDbCol("testing", "users")
 
-	rt, p, err := mh.DeleteOne[Person](
+	rt, p, err := mh.Delete[Person](
 		strings.NewReader(`{
 			"age": {
 				"$lt": 50
@@ -134,4 +137,44 @@ func TestDelete(t *testing.T) {
 
 	fmt.Println(rt)
 	fmt.Println(p)
+}
+
+func TestReplace(t *testing.T) {
+
+	mh.UseDbCol("testing", "users")
+
+	r, err := os.Open("./s1.json")
+	if err != nil {
+		panic(err)
+	}
+
+	id, data, err := mh.ReplaceOne(strings.NewReader(`{"age": 22}`), r)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(id)
+	fmt.Println(string(data))
+	fmt.Println(time.Now())
+	fmt.Print()
+}
+
+func TestUpsert(t *testing.T) {
+
+	mh.UseDbCol("testing", "users")
+
+	r, err := os.Open("./s3.json")
+	if err != nil {
+		panic(err)
+	}
+
+	result, data, err := mh.Upsert(r, "age", 11)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(result)
+	fmt.Println(string(data))
+	fmt.Println(time.Now())
+	fmt.Print("   ")
 }
