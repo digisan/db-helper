@@ -19,11 +19,12 @@ func TestInsert(t *testing.T) {
 		panic(err)
 	}
 
-	rID, err := mh.Insert(r)
+	rID, data, err := mh.Insert(r)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(rID)
+	fmt.Println(string(data))
 
 	////////////////////////////////////////////////////////
 
@@ -32,11 +33,12 @@ func TestInsert(t *testing.T) {
 		panic(err)
 	}
 
-	rIDs, err := mh.Insert(r)
+	rIDs, data, err := mh.Insert(r)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(rIDs)
+	fmt.Println(string(data))
 }
 
 func TestFind(t *testing.T) {
@@ -119,18 +121,17 @@ func TestUpdate(t *testing.T) {
 func TestDelete(t *testing.T) {
 	mh.UseDbCol("testing", "users")
 
-	rt, err := mh.Delete(
+	rt, p, err := mh.DeleteOne[Person](
 		strings.NewReader(`{
 			"age": {
 				"$lt": 50
 			}				
-		}`),
-		false,
-	)
+		}`))
 
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println(rt)
+	fmt.Println(p)
 }

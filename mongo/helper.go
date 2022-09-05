@@ -81,17 +81,17 @@ func reader4json(r io.Reader) ([]byte, bool, error) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-func Insert(rData io.Reader) (any, error) {
+func Insert(rData io.Reader) (any, []byte, error) {
 
 	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
 
 	if rData == nil {
-		return 0, nil
+		return 0, []byte{}, nil
 	}
 
 	dataJSON, isArray, err := reader4json(rData)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if isArray {
@@ -99,26 +99,26 @@ func Insert(rData io.Reader) (any, error) {
 		var docs []any
 		err := bson.UnmarshalExtJSON(dataJSON, true, &docs)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		result, err := col.InsertMany(Ctx, docs)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return result.InsertedIDs, nil
+		return result.InsertedIDs, dataJSON, nil
 
 	} else {
 
 		var doc any
 		err := bson.UnmarshalExtJSON(dataJSON, true, &doc)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		result, err := col.InsertOne(Ctx, doc)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return result.InsertedID, nil
+		return result.InsertedID, dataJSON, nil
 	}
 }
 
@@ -239,7 +239,7 @@ func Update(rFilter, rUpdate io.Reader, one bool) (int, error) {
 	}
 }
 
-func Delete(rFilter io.Reader, one bool) (int, error) {
+func DeleteOne[T any](rFilter io.Reader) (int, *T, error) {
 
 	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
 
@@ -247,26 +247,60 @@ func Delete(rFilter io.Reader, one bool) (int, error) {
 	if rFilter != nil {
 		filterJSON, _, err := reader4json(rFilter)
 		if err != nil {
-			return 0, err
+			return 0, nil, err
 		}
 		if err := bson.UnmarshalExtJSON(filterJSON, true, &filter); err != nil {
-			return 0, err
+			return 0, nil, err
 		}
 	} else {
-		return 0, nil
+		return 0, nil, nil
 	}
 
-	if one {
-		result, err := col.DeleteOne(Ctx, filter)
-		if err != nil {
-			return 0, err
-		}
-		return int(result.DeletedCount), nil
-	} else {
-		result, err := col.DeleteMany(Ctx, filter)
-		if err != nil {
-			return 0, err
-		}
-		return int(result.DeletedCount), nil
+	result := col.FindOneAndDelete(Ctx, filter)
+	if err := result.Err(); err != nil {
+		return 0, nil, err
 	}
+	one := new(T)
+	if err := result.Decode(one); err != nil {
+		return 0, nil, err
+	}
+	return 1, one, nil
+
+	// object, err := FindOne[T](rFilter)
+	// if err != nil {
+	// 	return 0, nil, err
+	// }
+	// result, err := col.DeleteOne(Ctx, filter)
+	// if err != nil {
+	// 	return 0, nil, err
+	// }
+	// return int(result.DeletedCount), object, nil
+}
+
+func Delete[T any](rFilter io.Reader) (int, []*T, error) {
+
+	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
+
+	var filter any
+	if rFilter != nil {
+		filterJSON, _, err := reader4json(rFilter)
+		if err != nil {
+			return 0, nil, err
+		}
+		if err := bson.UnmarshalExtJSON(filterJSON, true, &filter); err != nil {
+			return 0, nil, err
+		}
+	} else {
+		return 0, nil, nil
+	}
+
+	objects, err := Find[T](rFilter)
+	if err != nil {
+		return 0, nil, err
+	}
+	result, err := col.DeleteMany(Ctx, filter)
+	if err != nil {
+		return 0, nil, err
+	}
+	return int(result.DeletedCount), objects, nil
 }
