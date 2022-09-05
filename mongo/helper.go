@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sync"
 	"time"
 
 	jt "github.com/digisan/json-tool"
@@ -23,6 +24,7 @@ const (
 )
 
 var (
+	mtx *sync.Mutex
 	col *mongo.Collection
 )
 
@@ -56,10 +58,14 @@ func getMongoClient(ip string, port int) *mongo.Client {
 }
 
 func UpdateMongoClient(ip string, port int) {
+	mtx.Lock()
+	defer mtx.Unlock()
 	Client = getMongoClient(ip, port)
 }
 
 func UseDbCol(dbName, colName string) {
+	mtx.Lock()
+	defer mtx.Unlock()
 	col = Client.Database(dbName).Collection(colName)
 }
 
@@ -82,6 +88,9 @@ func reader4json(r io.Reader) ([]byte, bool, error) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 func Insert(rData io.Reader) (any, []byte, error) {
+
+	mtx.Lock()
+	defer mtx.Unlock()
 
 	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
 
@@ -123,6 +132,9 @@ func Insert(rData io.Reader) (any, []byte, error) {
 }
 
 func Find[T any](rFilter io.Reader) (rt []*T, err error) {
+
+	mtx.Lock()
+	defer mtx.Unlock()
 
 	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
 
@@ -170,6 +182,9 @@ func Find[T any](rFilter io.Reader) (rt []*T, err error) {
 
 func FindOne[T any](rFilter io.Reader) (*T, error) {
 
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
 
 	var filter any
@@ -195,6 +210,9 @@ func FindOne[T any](rFilter io.Reader) (*T, error) {
 }
 
 func Update(rFilter, rUpdate io.Reader, one bool) (int, error) {
+
+	mtx.Lock()
+	defer mtx.Unlock()
 
 	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
 
@@ -241,6 +259,9 @@ func Update(rFilter, rUpdate io.Reader, one bool) (int, error) {
 
 func DeleteOne[T any](rFilter io.Reader) (int, *T, error) {
 
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
 
 	var filter any
@@ -278,6 +299,9 @@ func DeleteOne[T any](rFilter io.Reader) (int, *T, error) {
 }
 
 func Delete[T any](rFilter io.Reader) (int, []*T, error) {
+
+	mtx.Lock()
+	defer mtx.Unlock()
 
 	lk.FailOnErrWhen(col == nil, "%v", fmt.Errorf("collection is nil, use 'UseDbCol' to init one"))
 
