@@ -202,7 +202,7 @@ func TestDelete2(t *testing.T) {
 
 func TestCvtAM(t *testing.T) {
 	a := primitive.A{
-		1, 2, 3, 5,
+		1, 2, 3, 4, 5, 6,
 	}
 	arr, err := mh.CvtA[int](a)
 	fmt.Println(err)
@@ -211,6 +211,7 @@ func TestCvtAM(t *testing.T) {
 	m := primitive.M{
 		"a": "A",
 		"b": "B",
+		"c": "C",
 	}
 	mStr, err := mh.CvtM[string](m)
 	fmt.Println(err)

@@ -88,12 +88,17 @@ func reader4json(r io.Reader) ([]byte, bool, error) {
 	return data, data[0] == '[', nil
 }
 
-func CvtA[T any](a primitive.A) ([]T, error) {
+// a must be primitive.A type
+func CvtA[T any](a any) ([]T, error) {
 	if a == nil {
 		return nil, nil
 	}
-	rt := make([]T, 0, len(a))
-	for _, e := range a {
+	arr, ok := a.(primitive.A)
+	if !ok {
+		return nil, fmt.Errorf("[%v] is not a kind of primitive.A", a)
+	}
+	rt := make([]T, 0, len(arr))
+	for _, e := range arr {
 		v, ok := e.(T)
 		if !ok {
 			return nil, fmt.Errorf("[%v] is not a kind of return type", e)
@@ -103,12 +108,17 @@ func CvtA[T any](a primitive.A) ([]T, error) {
 	return rt, nil
 }
 
-func CvtM[T any](m primitive.M) (map[string]T, error) {
+// m must be primitive.M type
+func CvtM[T any](m any) (map[string]T, error) {
 	if m == nil {
 		return nil, nil
 	}
+	mSAny, ok := m.(primitive.M)
+	if !ok {
+		return nil, fmt.Errorf("[%v] is not a kind of primitive.M", m)
+	}
 	rt := make(map[string]T)
-	for k, v := range m {
+	for k, v := range mSAny {
 		val, ok := v.(T)
 		if !ok {
 			return nil, fmt.Errorf("[%v] is not a kind of return type", v)
