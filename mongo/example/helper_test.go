@@ -200,20 +200,53 @@ func TestDelete2(t *testing.T) {
 	fmt.Println("2:", n, err)
 }
 
+type P struct {
+	A int
+	B int
+}
+
+func (p P) String() string {
+	return fmt.Sprintf("{A: %v  B: %v}", p.A, p.B)
+}
+
 func TestCvtAM(t *testing.T) {
-	a := primitive.A{
-		1, 2, 3, 4, 5, 6,
+
+	item1, item2 := new(P), new(P)
+	item1.A = 1
+	item2.A = 10
+	a1 := primitive.A{
+		item1, item2,
 	}
-	arr, err := mh.CvtA[int](a)
-	fmt.Println(err)
-	fmt.Println(arr)
+	arr1, err1 := mh.CvtA[P](a1)
+	fmt.Println(err1)
+	fmt.Println(arr1)
+
+	////////////////
+
+	a2 := primitive.A{
+		1, 2, 3,
+	}
+	arr2, err2 := mh.CvtA[int](a2)
+	fmt.Println(err2)
+	fmt.Println(arr2)
+
+	fmt.Println("-------------------")
+
+	///////////////////////////
+
+	type class struct {
+		A string `json:"a"`
+		B string `json:"b"`
+		C string `json:"c"`
+	}
 
 	m := primitive.M{
-		"a": "A",
-		"b": "B",
-		"c": "C",
+		"a": "AAA",
+		"b": "BBB",
+		"c": "CCC",
 	}
-	mStr, err := mh.CvtM[string](m)
+	cls, err := mh.CvtM[class](m)
 	fmt.Println(err)
-	fmt.Println(mStr)
+	fmt.Println(cls.A, cls.B, cls.C)
+	fmt.Println(*cls)
 }

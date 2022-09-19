@@ -88,42 +88,52 @@ func reader4json(r io.Reader) ([]byte, bool, error) {
 	return data, data[0] == '[', nil
 }
 
-// a must be primitive.A type
+// a should be primitive.A or []any type
 func CvtA[T any](a any) ([]T, error) {
 	if a == nil {
 		return nil, nil
 	}
-	arr, ok := a.(primitive.A)
-	if !ok {
-		return nil, fmt.Errorf("[%v] is not a kind of primitive.A", a)
-	}
-	rt := make([]T, 0, len(arr))
-	for _, e := range arr {
-		v, ok := e.(T)
-		if !ok {
-			return nil, fmt.Errorf("[%v] is not a kind of return type", e)
+
+	if arr, ok := a.(primitive.A); ok {
+		rt := make([]T, 0, len(arr))
+		for _, e := range arr {
+			v, err := CvtM[T](e)
+			if err != nil {
+				return nil, err
+			}
+			rt = append(rt, *v)
 		}
-		rt = append(rt, v)
+		return rt, nil
 	}
-	return rt, nil
+
+	if arr, ok := a.([]any); ok {
+		rt := make([]T, 0, len(arr))
+		for _, e := range arr {
+			v, err := CvtM[T](e)
+			if err != nil {
+				return nil, err
+			}
+			rt = append(rt, *v)
+		}
+		return rt, nil
+	}
+
+	lk.Warn("a @type [%T] should be added into CvtA", a)
+	return []T{}, nil
 }
 
-// m must be primitive.M type
-func CvtM[T any](m any) (map[string]T, error) {
+// m should be primitive.M or map[string]any type
+func CvtM[T any](m any) (*T, error) {
 	if m == nil {
 		return nil, nil
 	}
-	mSAny, ok := m.(primitive.M)
-	if !ok {
-		return nil, fmt.Errorf("[%v] is not a kind of primitive.M", m)
+	data, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
 	}
-	rt := make(map[string]T)
-	for k, v := range mSAny {
-		val, ok := v.(T)
-		if !ok {
-			return nil, fmt.Errorf("[%v] is not a kind of return type", v)
-		}
-		rt[k] = val
+	rt := new(T)
+	if err := json.Unmarshal(data, rt); err != nil {
+		return nil, err
 	}
 	return rt, nil
 }
