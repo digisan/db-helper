@@ -9,9 +9,11 @@ import (
 	"sync"
 	"time"
 
+	// . "github.com/digisan/go-generics/v2"
 	jt "github.com/digisan/json-tool"
 	lk "github.com/digisan/logkit"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -84,6 +86,36 @@ func reader4json(r io.Reader) ([]byte, bool, error) {
 		return nil, false, fmt.Errorf("invalid JSON")
 	}
 	return data, data[0] == '[', nil
+}
+
+func CvtA[T any](a primitive.A) ([]T, error) {
+	if a == nil {
+		return nil, nil
+	}
+	rt := make([]T, 0, len(a))
+	for _, e := range a {
+		v, ok := e.(T)
+		if !ok {
+			return nil, fmt.Errorf("[%v] is not a kind of return type", e)
+		}
+		rt = append(rt, v)
+	}
+	return rt, nil
+}
+
+func CvtM[T any](m primitive.M) (map[string]T, error) {
+	if m == nil {
+		return nil, nil
+	}
+	rt := make(map[string]T)
+	for k, v := range m {
+		val, ok := v.(T)
+		if !ok {
+			return nil, fmt.Errorf("[%v] is not a kind of return type", v)
+		}
+		rt[k] = val
+	}
+	return rt, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

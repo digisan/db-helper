@@ -8,7 +8,15 @@ import (
 	"time"
 
 	mh "github.com/digisan/db-helper/mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+// https://www.mongodb.com/docs/drivers/go/current/fundamentals/crud/read-operations/query-document/#std-label-golang-literal-values
+// "$eq" "$lt" "$gt" "$lte"
+// "$exists"
+// "$regex"
+// "$all"
+// "$bitsAllSet"
 
 func TestInsert(t *testing.T) {
 	mh.UseDbCol("testing", "users")
@@ -177,4 +185,34 @@ func TestUpsert(t *testing.T) {
 	fmt.Println(string(data))
 	fmt.Println(time.Now())
 	fmt.Print("   ")
+}
+
+func TestDelete2(t *testing.T) {
+
+	sFilter := fmt.Sprintf(`{"Entity": "%v"}`, "My Test 1")
+
+	mh.UseDbCol("dictionaryTest", "entities")
+	n, _, err := mh.DeleteOne[any](strings.NewReader(sFilter))
+	fmt.Println("1:", n, err)
+
+	mh.UseDbCol("dictionaryTest", "entities_text")
+	n, _, err = mh.DeleteOne[any](strings.NewReader(sFilter))
+	fmt.Println("2:", n, err)
+}
+
+func TestCvtAM(t *testing.T) {
+	a := primitive.A{
+		1, 2, 3, 5,
+	}
+	arr, err := mh.CvtA[int](a)
+	fmt.Println(err)
+	fmt.Println(arr)
+
+	m := primitive.M{
+		"a": "A",
+		"b": "B",
+	}
+	mStr, err := mh.CvtM[string](m)
+	fmt.Println(err)
+	fmt.Println(mStr)
 }
