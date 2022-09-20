@@ -72,6 +72,32 @@ func UseDbCol(dbName, colName string) {
 	col = Client.Database(dbName).Collection(colName)
 }
 
+func DropDb(dbName string) error {
+	mtx.Lock()
+	defer mtx.Unlock()
+	return Client.Database(dbName).Drop(Ctx)
+}
+
+func DropCol(dbName, colName string) error {
+	mtx.Lock()
+	defer mtx.Unlock()
+	return Client.Database(dbName).Collection(colName).Drop(Ctx)
+}
+
+func DropCurrentCol() (int, error) {
+	mtx.Lock()
+	defer mtx.Unlock()
+	if col == nil {
+		return 0, nil
+	}
+	err := col.Drop(Ctx)
+	if err == nil {
+		col = nil
+		return 1, nil
+	}
+	return 0, err
+}
+
 // return json string, is array type, error
 func reader4json(r io.Reader) ([]byte, bool, error) {
 	data, err := io.ReadAll(r)

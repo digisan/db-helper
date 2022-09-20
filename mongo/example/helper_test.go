@@ -18,6 +18,11 @@ import (
 // "$all"
 // "$bitsAllSet"
 
+func TestDrop(t *testing.T) {
+	mh.UseDbCol("dictionaryTest", "pathval")
+	fmt.Println(mh.DropCurrentCol())
+}
+
 func TestInsert(t *testing.T) {
 	mh.UseDbCol("testing", "users")
 
