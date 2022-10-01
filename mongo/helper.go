@@ -114,6 +114,18 @@ func reader4json(r io.Reader) ([]byte, bool, error) {
 	return data, data[0] == '[', nil
 }
 
+// return json string, for filter reader
+func kv2reader(key string, value any) io.Reader {
+	js := ""
+	switch value.(type) {
+	case string:
+		js = fmt.Sprintf(`{"%s": "%v"}`, key, value)
+	default:
+		js = fmt.Sprintf(`{"%s": %v}`, key, value)
+	}
+	return strings.NewReader(js)
+}
+
 // a should be primitive.A or []any type
 func CvtA[T any](a any) ([]T, error) {
 	if a == nil {
@@ -256,6 +268,10 @@ func Find[T any](rFilter io.Reader) (rt []*T, err error) {
 	return find[T](filter)
 }
 
+func FindAt[T any](field string, value any) (rt []*T, err error) {
+	return Find[T](kv2reader(field, value))
+}
+
 // filter: bson format
 func findOne[T any](filter any) (*T, error) {
 	one := new(T)
@@ -286,6 +302,10 @@ func FindOne[T any](rFilter io.Reader) (*T, error) {
 		filter = bson.D{}
 	}
 	return findOne[T](filter)
+}
+
+func FindOneAt[T any](field string, value any) (*T, error) {
+	return FindOne[T](kv2reader(field, value))
 }
 
 // return updated count
@@ -337,6 +357,10 @@ func Update(rFilter, rUpdate io.Reader, one bool) (int, error) {
 	}
 }
 
+func UpdateAt(field string, value any, rUpdate io.Reader, one bool) (int, error) {
+	return Update(kv2reader(field, value), rUpdate, one)
+}
+
 // return replaced count, after replacing data
 func ReplaceOne(rFilter, rData io.Reader) (any, []byte, error) {
 
@@ -378,19 +402,15 @@ func ReplaceOne(rFilter, rData io.Reader) (any, []byte, error) {
 	return result.ModifiedCount, dataJSON, nil
 }
 
+func ReplaceOneAt(field string, value any, rData io.Reader) (any, []byte, error) {
+	return ReplaceOne(kv2reader(field, value), rData)
+}
+
 // if inserted, return id,    inserted data
 // if replaced, return count, after replacing data
-func Upsert(rData io.Reader, idField string, idValue any) (any, []byte, error) {
+func Upsert(rData io.Reader, field string, value any) (any, []byte, error) {
 
-	IdFilterStr := ""
-	switch idValue.(type) {
-	case string:
-		IdFilterStr = fmt.Sprintf(`{"%s": "%v"}`, idField, idValue)
-	default:
-		IdFilterStr = fmt.Sprintf(`{"%s": %v}`, idField, idValue)
-	}
-
-	object, err := FindOne[map[string]any](strings.NewReader(IdFilterStr))
+	object, err := FindOne[map[string]any](kv2reader(field, value))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -398,7 +418,7 @@ func Upsert(rData io.Reader, idField string, idValue any) (any, []byte, error) {
 	if object == nil {
 		return Insert(rData)
 	}
-	return ReplaceOne(strings.NewReader(IdFilterStr), rData)
+	return ReplaceOne(kv2reader(field, value), rData)
 }
 
 // return deleted count, original object
@@ -447,6 +467,10 @@ func DeleteOne[T any](rFilter io.Reader) (int, *T, error) {
 	// return int(result.DeletedCount), object, nil
 }
 
+func DeleteOneAt[T any](field string, value any) (int, *T, error) {
+	return DeleteOne[T](kv2reader(field, value))
+}
+
 // return deleted count, original objects
 func Delete[T any](rFilter io.Reader) (int, []*T, error) {
 
@@ -477,4 +501,8 @@ func Delete[T any](rFilter io.Reader) (int, []*T, error) {
 		return 0, nil, err
 	}
 	return int(result.DeletedCount), objects, nil
+}
+
+func DeleteAt[T any](field string, value any) (int, []*T, error) {
+	return Delete[T](kv2reader(field, value))
 }
