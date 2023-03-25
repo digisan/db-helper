@@ -29,7 +29,7 @@ func GetOneObject[V any, T PtrDbAccessible[V]](key []byte) (T, error) {
 			it := txn.NewIterator(opts)
 			defer it.Close()
 
-			itemproc := func(item *badger.Item) error {
+			itemProc := func(item *badger.Item) error {
 				if bytes.Equal(key, item.Key()) {
 					if err := item.Value(func(val []byte) error {
 						_, err := rt.Unmarshal(key, val)
@@ -42,7 +42,7 @@ func GetOneObject[V any, T PtrDbAccessible[V]](key []byte) (T, error) {
 				return nil
 			}
 			if it.Seek(key); it.Valid() {
-				return itemproc(it.Item())
+				return itemProc(it.Item())
 			}
 			return nil
 		})
@@ -62,7 +62,7 @@ func GetMap[V any, T PtrDbAccessible[V]](prefix []byte, filter func([]byte, any)
 			it := txn.NewIterator(opts)
 			defer it.Close()
 
-			itemproc := func(item *badger.Item) error {
+			itemProc := func(item *badger.Item) error {
 				return item.Value(func(val []byte) error {
 					key := item.Key()
 					data, err := T(new(V)).Unmarshal(key, val)
@@ -77,13 +77,13 @@ func GetMap[V any, T PtrDbAccessible[V]](prefix []byte, filter func([]byte, any)
 			}
 			if len(prefix) == 0 {
 				for it.Rewind(); it.Valid(); it.Next() {
-					if err := itemproc(it.Item()); err != nil {
+					if err := itemProc(it.Item()); err != nil {
 						return err
 					}
 				}
 			} else {
 				for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
-					if err := itemproc(it.Item()); err != nil {
+					if err := itemProc(it.Item()); err != nil {
 						return err
 					}
 				}
@@ -103,7 +103,7 @@ func GetObjects[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool)
 			it := txn.NewIterator(opts)
 			defer it.Close()
 
-			itemproc := func(item *badger.Item) error {
+			itemProc := func(item *badger.Item) error {
 				return item.Value(func(val []byte) error {
 					one := T(new(V))
 					if _, err := one.Unmarshal(item.Key(), val); err != nil {
@@ -117,13 +117,13 @@ func GetObjects[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) bool)
 			}
 			if len(prefix) == 0 {
 				for it.Rewind(); it.Valid(); it.Next() {
-					if err := itemproc(it.Item()); err != nil {
+					if err := itemProc(it.Item()); err != nil {
 						return err
 					}
 				}
 			} else {
 				for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
-					if err := itemproc(it.Item()); err != nil {
+					if err := itemProc(it.Item()); err != nil {
 						return err
 					}
 				}
@@ -142,7 +142,7 @@ func GetObjectCount[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) b
 			it := txn.NewIterator(opts)
 			defer it.Close()
 
-			itemproc := func(item *badger.Item) error {
+			itemProc := func(item *badger.Item) error {
 				return item.Value(func(val []byte) error {
 					one := T(new(V))
 					if _, err := one.Unmarshal(item.Key(), val); err != nil {
@@ -157,13 +157,13 @@ func GetObjectCount[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) b
 			}
 			if len(prefix) == 0 {
 				for it.Rewind(); it.Valid(); it.Next() {
-					if err := itemproc(it.Item()); err != nil {
+					if err := itemProc(it.Item()); err != nil {
 						return err
 					}
 				}
 			} else {
 				for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
-					if err := itemproc(it.Item()); err != nil {
+					if err := itemProc(it.Item()); err != nil {
 						return err
 					}
 				}
@@ -183,7 +183,7 @@ func GetFirstObject[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) b
 			it := txn.NewIterator(opts)
 			defer it.Close()
 
-			itemproc := func(item *badger.Item) error {
+			itemProc := func(item *badger.Item) error {
 				return item.Value(func(val []byte) error {
 					one := T(new(V))
 					if _, err := one.Unmarshal(item.Key(), val); err != nil {
@@ -198,7 +198,7 @@ func GetFirstObject[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) b
 			}
 			if len(prefix) == 0 {
 				for it.Rewind(); it.Valid(); it.Next() {
-					if err := itemproc(it.Item()); err != nil {
+					if err := itemProc(it.Item()); err != nil {
 						return err
 					}
 					if found {
@@ -207,7 +207,7 @@ func GetFirstObject[V any, T PtrDbAccessible[V]](prefix []byte, filter func(T) b
 				}
 			} else {
 				for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
-					if err := itemproc(it.Item()); err != nil {
+					if err := itemProc(it.Item()); err != nil {
 						return err
 					}
 					if found {

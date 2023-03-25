@@ -15,15 +15,16 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
-	github.com/digisan/gotk v0.3.5 // indirect
+	github.com/digisan/gotk v0.3.6 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/glog v1.1.0 // indirect
+	github.com/golang/glog v1.1.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v23.3.3+incompatible // indirect
-	github.com/gookit/color v1.5.2 // indirect
+	github.com/gookit/color v1.5.3 // indirect
+	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/montanaflynn/stats v0.7.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
