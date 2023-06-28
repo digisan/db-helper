@@ -3,7 +3,7 @@ module github.com/digisan/db-helper
 go 1.20
 
 require (
-	github.com/dgraph-io/badger/v3 v3.2103.5
+	github.com/dgraph-io/badger/v4 v4.1.0
 	github.com/digisan/go-generics v0.3.5
 	github.com/digisan/json-tool v0.2.5
 	github.com/digisan/logkit v0.2.5
@@ -11,7 +11,6 @@ require (
 )
 
 require (
-	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
@@ -43,5 +42,5 @@ require (
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.10.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 )
