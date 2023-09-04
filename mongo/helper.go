@@ -9,8 +9,7 @@ import (
 	"sync"
 	"time"
 
-	// . "github.com/digisan/go-generics/v2"
-	jt "github.com/digisan/json-tool"
+	dt "github.com/digisan/gotk/data-type"
 	lk "github.com/digisan/logkit"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -108,7 +107,7 @@ func reader4json(r io.Reader) ([]byte, bool, error) {
 	if len(data) == 0 {
 		return []byte{}, false, nil
 	}
-	if !jt.IsValid(data) {
+	if !dt.IsJSON(data) {
 		return nil, false, fmt.Errorf("invalid JSON")
 	}
 	return data, data[0] == '[', nil

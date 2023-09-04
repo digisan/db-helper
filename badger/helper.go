@@ -273,7 +273,7 @@ func DeleteOneObject[V any, T PtrDbAccessible[V]](key []byte) (n int, err error)
 	})
 }
 
-// delete multiple object
+// delete multiple objects
 func DeleteObjects[V any, T PtrDbAccessible[V]](prefix []byte) (n int, err error) {
 	return n, T(new(V)).BadgerDB().Update(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
