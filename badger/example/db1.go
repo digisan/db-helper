@@ -12,10 +12,11 @@ import (
 )
 
 const (
-	SEP_K = "^"
-	SEP_V = "^"
+	_K = "^"
+	_V = "^"
 )
 
+// DB1 is an example for badger db usage
 type DB1 struct {
 	id        string
 	data      []string
@@ -23,7 +24,7 @@ type DB1 struct {
 }
 
 func NewDB1(id string) *DB1 {
-	lk.FailOnErrWhen(strings.Contains(id, SEP_K), "%v", fmt.Errorf("invalid symbol(%s) in id", SEP_K))
+	lk.FailOnErrWhen(strings.Contains(id, _K), "%v", fmt.Errorf("invalid symbol(%s) in id", _K))
 	return &DB1{
 		id:        id,
 		data:      []string{},
@@ -41,6 +42,12 @@ func (db1 DB1) String() string {
 	return sb.String()
 }
 
+///////////////////////////////////////////////////////////////
+
+func (db1 *DB1) BadgerDB() *badger.DB {
+	return dbGrp.db1
+}
+
 func (db1 *DB1) Key() []byte {
 	return []byte(db1.id)
 }
@@ -54,7 +61,7 @@ func (db1 *DB1) Marshal(at any) (forKey, forValue []byte) {
 
 func (db1 *DB1) Unmarshal(dbKey, dbVal []byte) (any, error) {
 	dbKeyStr := string(dbKey)
-	typeid := strings.Split(dbKeyStr, SEP_K)
+	typeid := strings.Split(dbKeyStr, _K)
 	db1.id = typeid[0]
 	dbValStr := string(dbVal)
 	dbValStr = strings.TrimPrefix(dbValStr, "[")
@@ -64,9 +71,7 @@ func (db1 *DB1) Unmarshal(dbKey, dbVal []byte) (any, error) {
 	return db1, nil
 }
 
-func (db1 *DB1) BadgerDB() *badger.DB {
-	return dbGrp.db1
-}
+///////////////////////////////////////////////////////////////
 
 func (db1 *DB1) AddData(items ...string) error {
 	db1.data = append(db1.data, items...)
