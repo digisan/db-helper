@@ -3,6 +3,7 @@ package mongohelper
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -113,8 +114,7 @@ func reader4json(r io.Reader) ([]byte, bool, error) {
 	return data, data[0] == '[', nil
 }
 
-// return json string, for filter reader
-func kv2reader(key string, value any) io.Reader {
+func kv2json(key string, value any) string {
 	js := ""
 	switch value.(type) {
 	case string:
@@ -122,7 +122,40 @@ func kv2reader(key string, value any) io.Reader {
 	default:
 		js = fmt.Sprintf(`{"%s": %v}`, key, value)
 	}
-	return strings.NewReader(js)
+	lk.FailOnErrWhen(!dt.IsJSON([]byte(js)), "%v", fmt.Errorf("INVALID JSON"))
+	return js
+}
+
+// return json string, for filter reader
+func kv2reader(key string, value any) io.Reader {
+	return strings.NewReader(kv2json(key, value))
+}
+
+func kvs2json(keys []string, values []any) string {
+	if len(keys) == 0 || len(keys) != len(values) {
+		lk.Warn("keys' length & values' length must be positive and identical")
+		return ""
+	}
+	js := "{"
+	for i, key := range keys {
+		value := values[i]
+		switch value.(type) {
+		case string:
+			js += fmt.Sprintf(`"%s": "%v",`, key, value)
+		default:
+			js += fmt.Sprintf(`"%s": %v,`, key, value)
+		}
+	}
+	js = strings.TrimSuffix(js, ",") + "}"
+	lk.FailOnErrWhen(!dt.IsJSON([]byte(js)), "%v", fmt.Errorf("INVALID JSON"))
+	return js
+}
+
+func kvs2reader(keys []string, values []any) io.Reader {
+	if js := kvs2json(keys, values); len(js) > 0 {
+		return strings.NewReader(js)
+	}
+	return nil
 }
 
 // a should be primitive.A or []any type
@@ -173,6 +206,23 @@ func CvtM[T any](m any) (*T, error) {
 		return nil, err
 	}
 	return rt, nil
+}
+
+func json2bsonM(js string) bson.M {
+	result := bson.M{}
+	if err := bson.UnmarshalExtJSON([]byte(js), true, &result); err != nil {
+		lk.Warn(err.Error())
+		return nil
+	}
+	return result
+}
+
+func kv2bsonM(key string, value any) bson.M {
+	return json2bsonM(kv2json(key, value))
+}
+
+func kvs2bsonM(keys []string, values []any) bson.M {
+	return json2bsonM(kvs2json(keys, values))
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -504,4 +554,22 @@ func Delete[T any](rFilter io.Reader) (int, []*T, error) {
 
 func DeleteAt[T any](field string, value any) (int, []*T, error) {
 	return Delete[T](kv2reader(field, value))
+}
+
+func RemoveFields(field string, value any, remove ...string) error {
+	if len(remove) == 0 {
+		return errors.New("empty remove-fields, nothing to remove")
+	}
+
+	filter := kv2bsonM(field, value)
+
+	ones := []any{}
+	for range remove {
+		ones = append(ones, 1)
+	}
+	unset := kvs2bsonM(remove, ones)
+	update := bson.M{"$unset": unset}
+
+	_, err := col.UpdateOne(Ctx, filter, update)
+	return err
 }

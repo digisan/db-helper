@@ -255,3 +255,35 @@ func TestCvtAM(t *testing.T) {
 	fmt.Println(cls.A, cls.B, cls.C)
 	fmt.Println(*cls)
 }
+
+func TestRemoveField(t *testing.T) {
+
+	// clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	// client, err := mongo.Connect(context.Background(), clientOptions)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer client.Disconnect(context.Background())
+
+	// collection := client.Database("MyDictionaryV2").Collection("act_delete")
+
+	// filter := bson.M{"User": "qmiao"}
+	// update := bson.M{"$unset": bson.M{"Did": 1, "Action": 1}}
+
+	// result, err := collection.UpdateOne(context.Background(), filter, update)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+
+	// fmt.Println(result.UpsertedCount)
+
+	/////////////////////////////////////////////////////////////////
+
+	mh.UseDbCol("MyDictionaryV2", "entities")
+
+	err := mh.RemoveFields("Entity", "Language spoken at home", "SIF", "Collections", "Metadata")
+	if err != nil {
+		fmt.Println(err)
+	}
+}
