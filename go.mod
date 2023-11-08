@@ -7,9 +7,9 @@ toolchain go1.21.0
 require (
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/digisan/go-generics v0.4.1
-	github.com/digisan/gotk v0.4.6
-	github.com/digisan/logkit v0.2.12
-	go.mongodb.org/mongo-driver v1.12.1
+	github.com/digisan/gotk v0.4.9
+	github.com/digisan/logkit v0.2.13
+	go.mongodb.org/mongo-driver v1.13.0
 )
 
 require (
@@ -35,8 +35,8 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/crypto v0.15.0 // indirect
+	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
