@@ -6,9 +6,9 @@ toolchain go1.21.0
 
 require (
 	github.com/dgraph-io/badger/v4 v4.2.0
-	github.com/digisan/go-generics v0.4.1
-	github.com/digisan/gotk v0.4.9
-	github.com/digisan/logkit v0.2.13
+	github.com/digisan/go-generics v0.4.2
+	github.com/digisan/gotk v0.4.11
+	github.com/digisan/logkit v0.2.14
 	go.mongodb.org/mongo-driver v1.13.0
 )
 
@@ -25,7 +25,7 @@ require (
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/h2non/filetype v1.1.3 // indirect
-	github.com/klauspost/compress v1.17.2 // indirect
+	github.com/klauspost/compress v1.17.3 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
