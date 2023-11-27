@@ -451,13 +451,14 @@ func ReplaceOne(rFilter, rData io.Reader) (any, []byte, error) {
 	return result.ModifiedCount, dataJSON, nil
 }
 
+// if couldn't find, do nothing
 func ReplaceOneAt(field string, value any, rData io.Reader) (any, []byte, error) {
 	return ReplaceOne(kv2reader(field, value), rData)
 }
 
 // if inserted, return id,    inserted data
 // if replaced, return count, after replacing data
-func Upsert(rData io.Reader, field string, value any) (any, []byte, error) {
+func UpsertOneAt(field string, value any, rData io.Reader) (any, []byte, error) {
 
 	object, err := FindOne[map[string]any](kv2reader(field, value))
 	if err != nil {

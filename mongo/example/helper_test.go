@@ -82,7 +82,7 @@ func TestFind(t *testing.T) {
 		"$and": [
 			{
 				"age": {
-					"$gt": 600
+					"$gt": 11
 				}
 			}
 		]
@@ -161,7 +161,8 @@ func TestReplace(t *testing.T) {
 		panic(err)
 	}
 
-	id, data, err := mh.ReplaceOne(strings.NewReader(`{"age": 22}`), r)
+	// id, data, err := mh.ReplaceOne(strings.NewReader(`{"age": 22}`), r)
+	id, data, err := mh.ReplaceOneAt("class.teacher", "Lee Lei", r)
 	if err != nil {
 		panic(err)
 	}
@@ -181,7 +182,7 @@ func TestUpsert(t *testing.T) {
 		panic(err)
 	}
 
-	result, data, err := mh.Upsert(r, "age", 11)
+	result, data, err := mh.UpsertOneAt("class.teacher", "Miss Tie 2", r)
 	if err != nil {
 		panic(err)
 	}
