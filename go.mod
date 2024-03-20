@@ -4,9 +4,9 @@ go 1.22.1
 
 require (
 	github.com/dgraph-io/badger/v4 v4.2.0
-	github.com/digisan/go-generics v0.5.1
-	github.com/digisan/gotk v0.5.1
-	github.com/digisan/logkit v0.3.3
+	github.com/digisan/go-generics v0.5.2
+	github.com/digisan/gotk v0.5.2
+	github.com/digisan/logkit v0.3.4
 	go.mongodb.org/mongo-driver v1.14.0
 )
 
@@ -20,7 +20,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/flatbuffers v23.5.26+incompatible // indirect
+	github.com/google/flatbuffers v24.3.7+incompatible // indirect
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
