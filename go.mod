@@ -4,9 +4,9 @@ go 1.22.2
 
 require (
 	github.com/dgraph-io/badger/v4 v4.2.0
-	github.com/digisan/go-generics v0.5.3
-	github.com/digisan/gotk v0.5.6
-	github.com/digisan/logkit v0.3.6
+	github.com/digisan/go-generics v0.5.4
+	github.com/digisan/gotk v0.5.7
+	github.com/digisan/logkit v0.3.7
 	go.mongodb.org/mongo-driver v1.15.0
 )
 
@@ -31,7 +31,7 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
+	github.com/youmark/pkcs8 v0.0.0-20240424034433-3c2c7870ae76 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
